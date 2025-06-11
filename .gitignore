@@ -1,0 +1,9 @@
+# Ignore kubeconfig files
+kubeconfig
+
+# Ignore local configuration files
+terraform.tfvars
+# Ignore Terraform state files
+terraform.tfstate
+terraform*
+.terraform
