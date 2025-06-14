@@ -4,7 +4,8 @@ kubeconfig
 # Ignore local configuration files
 terraform.tfvars
 # Ignore Terraform state files
-terraform.tfstate
+*.tfstate
+*.tfstate.backup
 terraform*
 .terraform
 
