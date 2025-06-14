@@ -23,10 +23,5 @@ write_files:
 runcmd:
   - swapoff -a
   - sed -i.bak '/ swap / s/^/#/' /etc/fstab
-  - sudo systemctl enable firewalld
-  - sudo systemctl start firewalld
-  - sudo systemctl daemon-reload
-  - sudo systemctl enable k3s-firewall.service
-  - sudo systemctl start k3s-firewall.service
-  - curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --cluster-init --tls-san ${k3s_api_dns}.${domain} --disable traefik --disable metrics-server --disable helm-controller --disable servicelb --flannel-backend=host-gw" sh - | tee /var/log/k3s-install.log
-
+  - until curl -skf https://${server_ip}:6443/ping; do sleep 5; done
+  - curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --server https://${server_ip}:6443 --token ${k3s_token} --tls-san ${k3s_api_dns}.${domain} --disable traefik --disable metrics-server --disable helm-controller --disable servicelb --flannel-backend=host-gw" sh - | tee /var/log/k3s-join-install.log

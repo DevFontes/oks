@@ -1,8 +1,2 @@
-Exportar as variáveis IP
+Esse projeto cria um cluster k3s em HA com 4 Nodes sendo 3 CPs e 1 Worker com VMs Arm gratuitas na OCI
 
-k3s_node_ips = [
-  "136.248.89.249",
-  "137.131.197.90",
-  "136.248.124.251",
-  "146.235.54.205",
-]

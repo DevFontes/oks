@@ -1,7 +1,0 @@
-#cloud-config
-runcmd:
-  - until curl -sf https://10.0.10.2:6443/ping; do sleep 5; done
-  - curl -sfL https://get.k3s.io | K3S_URL="https://10.0.10.2:6443" K3S_TOKEN_FILE="/var/lib/rancher/k3s/server/node-token" sh -
-  - sudo firewall-cmd --permanent --add-port=6443/tcp
-  - sudo firewall-cmd --permanent --add-port=22/tcp
-  - sudo firewall-cmd --reload
