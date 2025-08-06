@@ -1,7 +1,7 @@
 #cloud-config
 write_files:
   - path: /etc/systemd/system/k3s-firewall.service
-    permissions: '0644'
+    permissions: "0644"
     content: |
       [Unit]
       Description=Configure firewall for K3s
@@ -28,5 +28,4 @@ runcmd:
   - sudo systemctl daemon-reload
   - sudo systemctl enable k3s-firewall.service
   - sudo systemctl start k3s-firewall.service
-  - curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --cluster-init --tls-san ${k3s_api_dns}.${domain} --disable traefik --disable metrics-server --disable helm-controller --disable servicelb --flannel-backend=host-gw" sh - | tee /var/log/k3s-install.log
-
+  - curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --cluster-init --tls-san ${k3s_api_dns}.${domain} --disable traefik --disable metrics-server --disable servicelb --flannel-backend=host-gw" sh - | tee /var/log/k3s-install.log
