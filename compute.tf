@@ -49,6 +49,41 @@ data "local_file" "k3s_token" {
   filename   = "${path.module}/node-token"
 }
 
+resource "null_resource" "get_kubeconfig" {
+  depends_on = [oci_core_instance.k3s_nodes]
+
+  connection {
+    host        = oci_core_instance.k3s_server.public_ip
+    user        = "opc"
+    private_key = file(var.ssh_private_key_path)
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo cp /etc/rancher/k3s/k3s.yaml /tmp/kubeconfig",
+      "sudo chown opc:opc /tmp/kubeconfig"
+    ]
+  }
+
+  provisioner "local-exec" {
+    command = "scp -i ${var.ssh_private_key_path} -o StrictHostKeyChecking=no opc@${oci_core_instance.k3s_server.public_ip}:/tmp/kubeconfig ./kubeconfig"
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      sed -i 's|server: https://127.0.0.1:6443|server: https://${var.k3s_api_dns}.${var.domain}:6443|g' kubeconfig
+      sed -i 's|name: default|name: k3s-oci|g' kubeconfig
+      sed -i 's|cluster: default|cluster: k3s-oci|g' kubeconfig
+      sed -i 's|current-context: default|current-context: k3s-oci|g' kubeconfig
+      sed -i 's|user: default|user: k3s-oci|g' kubeconfig
+    EOT
+  }
+
+  provisioner "local-exec" {
+    command = "rm -f ./node-token"
+  }
+}
+
 data "template_file" "server_cloud_init" {
   template = file("${path.module}/cloud-init/server.yaml.tpl")
   vars = {
@@ -58,12 +93,14 @@ data "template_file" "server_cloud_init" {
 }
 
 data "template_file" "join_cloud_init" {
+  count    = 3
   template = file("${path.module}/cloud-init/join.yaml.tpl")
   vars = {
     k3s_token   = trimspace(data.local_file.k3s_token.content)
     server_ip   = oci_core_instance.k3s_server.private_ip
     k3s_api_dns = var.k3s_api_dns
     domain      = var.domain
+    join_delay  = count.index * 60  # 0s, 60s, 120s delay
   }
 }
 
@@ -113,7 +150,7 @@ resource "oci_core_instance" "k3s_nodes" {
   metadata = {
     ssh_authorized_keys = file(var.ssh_public_key_path)
     user_data = base64encode(
-      count.index == 2 ? data.template_file.worker_cloud_init.rendered : data.template_file.join_cloud_init.rendered
+      count.index == 2 ? data.template_file.worker_cloud_init.rendered : data.template_file.join_cloud_init[count.index].rendered
     )
   }
   depends_on = [data.local_file.k3s_token]

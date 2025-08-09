@@ -105,3 +105,21 @@ resource "oci_core_network_security_group_security_rule" "k8s_etcd" {
   }
 }
 
+# Allow internal communication between nodes
+resource "oci_core_network_security_group_security_rule" "internal_all" {
+  network_security_group_id = oci_core_network_security_group.nsg.id
+  direction                 = "INGRESS"
+  protocol                  = "all"
+  source                    = "10.0.10.0/24"
+  source_type               = "CIDR_BLOCK"
+}
+
+# Allow ICMP for ping between nodes
+resource "oci_core_network_security_group_security_rule" "internal_icmp" {
+  network_security_group_id = oci_core_network_security_group.nsg.id
+  direction                 = "INGRESS"
+  protocol                  = "1"
+  source                    = "10.0.10.0/24"
+  source_type               = "CIDR_BLOCK"
+}
+
